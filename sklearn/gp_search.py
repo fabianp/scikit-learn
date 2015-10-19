@@ -218,7 +218,7 @@ class GPSearchCV(BaseSearchCV):
         self.n_candidates = n_candidates
         self.gp_params = gp_params
         self.param_names = list(parameters.keys())
-        self.param_isInt = np.array([0 if (parameters[k][0] == 'float')
+        self.param_is_int = np.array([0 if (parameters[k][0] == 'float')
                                      else 1 for k in self.param_names])
         self.param_bounds = np.zeros((self.n_parameters, 2))
         self.verbose = verbose
@@ -254,7 +254,7 @@ class GPSearchCV(BaseSearchCV):
         if self.verbose > 0:
             print(self.parameters)
             print(self.param_names)
-            print(self.param_isInt)
+            print(self.param_is_int)
             print(self.param_bounds)
 
 
@@ -327,7 +327,7 @@ class GPSearchCV(BaseSearchCV):
 
         #  Initialize with random candidates  #
         init_candidates = sample_candidates(
-            self.n_init, self.param_bounds, self.param_isInt)
+            self.n_init, self.param_bounds, self.param_is_int)
         self.n_init = init_candidates.shape[0]
 
         for i in range(self.n_init):
@@ -362,7 +362,7 @@ class GPSearchCV(BaseSearchCV):
             # acquisition values
             candidates = sample_candidates(self.n_candidates,
                                            self.param_bounds,
-                                           self.param_isInt)
+                                           self.param_is_int)
             if self.acquisition_function == 'UCB':
                 predictions, std = gp.predict(candidates, return_std=True)
                 upperBound = predictions + 1.96 * std
