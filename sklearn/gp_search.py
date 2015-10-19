@@ -10,7 +10,7 @@ from __future__ import print_function
 import numpy as np
 from scipy.stats import norm
 
-from .gaussian_process.gaussian_process import GaussianProcess
+from .gaussian_process.gaussian_process import GaussianProcessRegressor
 from .cross_validation import check_cv
 from .cross_validation import _fit_and_score
 from .metrics.scorer import check_scoring
@@ -355,11 +355,7 @@ class GPSearchCV(object):
         for i in range(self.n_iter-self.n_init):
 
             # Model with a Gaussian Process
-            gp = GaussianProcess(theta0=1. * np.ones(self.n_parameters),
-                                 thetaL=0.001 * np.ones(self.n_parameters),
-                                 thetaU=10. * np.ones(self.n_parameters),
-                                 random_start=3,
-                                 nugget=self.gp_nugget)
+            gp = GaussianProcessRegressor()
             gp.fit(tested_parameters[:n_tested_parameters, :],
                    cv_scores[:n_tested_parameters])
 
