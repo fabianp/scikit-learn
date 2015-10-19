@@ -15,7 +15,7 @@ from .cross_validation import check_cv
 from .cross_validation import _fit_and_score
 from .metrics.scorer import check_scoring
 from .base import is_classifier, clone
-
+from .grid_search import BaseSearchCV
 
 #   UTILS    #
 
@@ -86,7 +86,7 @@ def is_in_ndarray(item, a):
 
 
 #    GPSearchCV    #
-class GPSearchCV(object):
+class GPSearchCV(BaseSearchCV):
     """
     Parameters
     ----------
@@ -200,29 +200,28 @@ class GPSearchCV(object):
                  parameters,
                  scoring=None,
                  fit_params=None,
-                 refit=True,
                  cv=None,
                  acquisition_function='UCB',
                  n_init=10,
                  n_iter=20,
                  n_candidates=500,
-                 gp_nugget=1.e-10,
+                 gp_params=None
                  verbose=0):
 
         self.estimator = estimator
         self.parameters = parameters
         self.n_parameters = len(parameters)
+        self.scoring = scoring
         self.acquisition_function = acquisition_function
         self.n_iter = n_iter
         self.n_init = n_init
         self.n_candidates = n_candidates
+        self.gp_params = gp_params
         self.param_names = list(parameters.keys())
         self.param_isInt = np.array([0 if (parameters[k][0] == 'float')
                                      else 1 for k in self.param_names])
         self.param_bounds = np.zeros((self.n_parameters, 2))
-        self.gp_nugget = gp_nugget
         self.verbose = verbose
-        self.scoring = scoring
         self.fit_params = fit_params if fit_params is not None else {}
         self.cv = cv
 
@@ -355,7 +354,7 @@ class GPSearchCV(object):
         for i in range(self.n_iter-self.n_init):
 
             # Model with a Gaussian Process
-            gp = GaussianProcessRegressor()
+            gp = GaussianProcessRegressor(**self.gp_params)
             gp.fit(tested_parameters[:n_tested_parameters, :],
                    cv_scores[:n_tested_parameters])
 
