@@ -274,10 +274,10 @@ class GPSearchCV(object):
         return dict_parameter
 
 
-    def score(self, test_parameter):
+    def _evaluate_params(self, X, y, params):
         """
         The score function to call in order to evaluate the quality
-        of the parameter test_parameter
+        of the parameter params
 
         Parameters
         ----------
@@ -293,7 +293,7 @@ class GPSearchCV(object):
                           classifier=is_classifier(self.estimator))
             cv_score = [_fit_and_score(
                 clone(self.estimator), self.X, self.y, self.scorer_,
-                train, test, False, test_parameter,
+                train, test, False, params,
                 self.fit_params, return_parameters=True)
                 for train, test in cv]
 
@@ -306,7 +306,7 @@ class GPSearchCV(object):
             score /= float(n_test_samples)
 
         else:
-            score = self.estimator(test_parameter)
+            score = self.estimator(params)
 
         return score
 
@@ -333,7 +333,7 @@ class GPSearchCV(object):
 
         for i in range(self.n_init):
             dict_candidate = self._vector_to_dict(init_candidates[i, :])
-            cv_score = self.score(dict_candidate)
+            cv_score = self._evaluate_params(X, y, dict_candidate)
 
             if(self.verbose):
                 print('Step ' + str(i) + ' - Hyperparameter '
@@ -380,7 +380,7 @@ class GPSearchCV(object):
                       + self.acquisition_function)
 
             dict_candidate = self._vector_to_dict(best_candidate)
-            cv_score = self.score(dict_candidate)
+            cv_score = self._evaluate_params(X, y, dict_candidate)
             if(self.verbose):
                 print('Step ' + str(i+self.n_init) + ' - Hyperparameter '
                        + str(dict_candidate) + ' ' + str(cv_score))
