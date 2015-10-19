@@ -10,7 +10,7 @@ from __future__ import print_function
 import numpy as np
 from scipy.stats import norm
 
-from .gaussian_process.gaussian_process import GaussianProcessRegressor
+from .gaussian_process import GaussianProcessRegressor
 from .cross_validation import check_cv
 from .cross_validation import _fit_and_score
 from .metrics.scorer import check_scoring
