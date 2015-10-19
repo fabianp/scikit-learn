@@ -29,6 +29,10 @@ New features
      range normalization when the data is already centered or sparse.
      By `Thomas Unterthiner`_.
 
+   - The new class :class:`preprocessing.FunctionTransformer` turns a Python
+     function into a ``Pipeline``-compatible transformer object.
+     By Joe Jevnik.
+
 Enhancements
 ............
 
@@ -122,6 +126,12 @@ Bug fixes
 
     - Fixed bug in :class:`ensemble.forest.ForestClassifier` while computing 
       oob_score and X is a sparse.csc_matrix. By `Ankur Ankan`_.
+
+    - All regressors now consistently handle and warn when given ``y`` that is of
+      shape ``(n_samples, 1)``. By `Andreas Müller`_.
+
+    - Fix in :class:`cluster.KMeans` cluster reassignment for sparse input by
+      `Lars Buitinck`_.
 
 API changes summary
 -------------------

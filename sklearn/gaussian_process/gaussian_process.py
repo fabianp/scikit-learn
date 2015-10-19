@@ -15,10 +15,12 @@ from ..utils import check_random_state, check_array, check_X_y
 from ..utils.validation import check_is_fitted
 from . import regression_models as regression
 from . import correlation_models as correlation
+from ..utils import deprecated
 
 MACHINE_EPSILON = np.finfo(np.double).eps
 
 
+@deprecated("l1_cross_distances is deprecated and will be removed in 0.18.")
 def l1_cross_distances(X):
     """
     Computes the nonzero componentwise L1 cross-distances between the vectors
@@ -56,8 +58,13 @@ def l1_cross_distances(X):
     return D, ij
 
 
+@deprecated("GaussianProcess is deprecated and will be removed in 0.18. "
+            "Use the GaussianProcessRegressor instead.")
 class GaussianProcess(BaseEstimator, RegressorMixin):
-    """The Gaussian Process model class.
+    """The legacy Gaussian Process model class.
+
+    Note that this class is deprecated and will be removed in 0.18.
+    Use the GaussianProcessRegressor instead.
 
     Read more in the :ref:`User Guide <gaussian_process>`.
 
@@ -718,17 +725,16 @@ class GaussianProcess(BaseEstimator, RegressorMixin):
                 else:
                     # Generate a random starting point log10-uniformly
                     # distributed between bounds
-                    log10theta0 = np.log10(self.thetaL) \
-                        + self.random_state.rand(self.theta0.size).reshape(
-                            self.theta0.shape) * np.log10(self.thetaU
-                                                          / self.thetaL)
+                    log10theta0 = (np.log10(self.thetaL)
+                                   + self.random_state.rand(*self.theta0.shape)
+                                   * np.log10(self.thetaU / self.thetaL))
                     theta0 = 10. ** log10theta0
 
                 # Run Cobyla
                 try:
                     log10_optimal_theta = \
                         optimize.fmin_cobyla(minus_reduced_likelihood_function,
-                                             np.log10(theta0), constraints,
+                                             np.log10(theta0).ravel(), constraints,
                                              iprint=0)
                 except ValueError as ve:
                     print("Optimization failed. Try increasing the ``nugget``")
