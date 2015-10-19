@@ -49,8 +49,8 @@ for score in scores:
     print("# Tuning hyper-parameters for %s" % score)
     print()
 
-    clf = GPSearchCV(tuned_parameters, SVC(C=1), cv=5)
-    clf._fit(X, y)
+    clf = GPSearchCV(SVC(C=1), tuned_parameters, cv=5, verbose=True)
+    clf.fit(X, y)
 
     print("Best parameters set found on development set:")
     print()

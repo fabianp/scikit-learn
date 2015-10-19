@@ -204,7 +204,7 @@ class GPSearchCV(object):
                  cv=None,
                  acquisition_function='UCB',
                  n_init=10,
-                 n_iter=100,
+                 n_iter=20,
                  n_candidates=500,
                  gp_nugget=1.e-10,
                  verbose=0):
@@ -365,14 +365,14 @@ class GPSearchCV(object):
                                            self.param_bounds,
                                            self.param_isInt)
             if self.acquisition_function == 'UCB':
-                predictions, MSE = gp.predict(candidates, eval_MSE=True)
-                upperBound = predictions + 1.96*np.sqrt(MSE)
+                predictions, std = gp.predict(candidates, return_std=True)
+                upperBound = predictions + 1.96 * std
                 best_candidate = candidates[np.argmax(upperBound)]
 
             elif self.acquisition_function == 'EI':
-                predictions, MSE = gp.predict(candidates, eval_MSE=True)
+                predictions, std = gp.predict(candidates, return_std=True)
                 y_best = np.max(cv_scores)
-                ei = compute_ei(predictions, np.sqrt(MSE), y_best)
+                ei = compute_ei(predictions, std, y_best)
                 best_candidate = candidates[np.argmax(ei)]
 
             else:
