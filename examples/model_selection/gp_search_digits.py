@@ -41,7 +41,7 @@ X_train, X_test, y_train, y_test = train_test_split(
 
 # Set the parameters by cross-validation
 tuned_parameters = {'gamma': ['float', [1e-3, 1e-4]],
-                    'C': ['float', [1, 1000]]},
+                    'C': ['float', [1, 1000]]}
 
 scores = ['precision', 'recall']
 
@@ -50,7 +50,7 @@ for score in scores:
     print()
 
     clf = GPSearchCV(tuned_parameters, SVC(C=1), cv=5)
-    clf.fit(X, y)
+    clf._fit(X, y)
 
     print("Best parameters set found on development set:")
     print()

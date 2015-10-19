@@ -289,10 +289,10 @@ class GPSearchCV(object):
         """
 
         if not self._callable_estimator:
-            cv = check_cv(self.cv, self.X, self.y,
+            cv = check_cv(self.cv, X, y,
                           classifier=is_classifier(self.estimator))
             cv_score = [_fit_and_score(
-                clone(self.estimator), self.X, self.y, self.scorer_,
+                clone(self.estimator), X, y, self.scorer_,
                 train, test, False, params,
                 self.fit_params, return_parameters=True)
                 for train, test in cv]
@@ -311,7 +311,7 @@ class GPSearchCV(object):
         return score
 
 
-    def _fit(self, X, y=None):
+    def fit(self, X, y=None):
         """
         Run the hyper-parameter optimization process
 
