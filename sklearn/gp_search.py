@@ -215,7 +215,7 @@ class GPSearchCV(object):
         self.n_iter = n_iter
         self.n_init = n_init
         self.n_candidates = n_candidates
-        self.param_names = parameters.keys()
+        self.param_names = list(parameters.keys())
         self.param_isInt = np.array([0 if (parameters[k][0] == 'float')
                                      else 1 for k in self.param_names])
         self.param_bounds = np.zeros((self.n_parameters, 2))
