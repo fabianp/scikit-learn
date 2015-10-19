@@ -199,7 +199,6 @@ class GPSearchCV(object):
                  parameters,
                  estimator,
                  scoring=None,
-                 X=None, y=None,
                  fit_params=None,
                  refit=True,
                  cv=None,
@@ -226,8 +225,6 @@ class GPSearchCV(object):
         self.estimator = estimator
         self.fit_params = fit_params if fit_params is not None else {}
         self.cv = cv
-        self.X = X
-        self.y = y
 
         self.best_parameter_ = None
         self.tested_parameters_ = None
@@ -261,7 +258,8 @@ class GPSearchCV(object):
             print(self.param_isInt)
             print(self.param_bounds)
 
-    def vector_to_dict(self, vector_parameter):
+
+    def _vector_to_dict(self, vector_parameter):
         dict_parameter = dict.fromkeys(self.param_names)
         for i in range(self.n_parameters):
             if(self.parameters[self.param_names[i]][0] == 'cat'):
@@ -274,6 +272,7 @@ class GPSearchCV(object):
                 dict_parameter[self.param_names[i]] = vector_parameter[i]
 
         return dict_parameter
+
 
     def score(self, test_parameter):
         """
@@ -311,7 +310,8 @@ class GPSearchCV(object):
 
         return score
 
-    def _fit(self):
+
+    def _fit(self, X, y=None):
         """
         Run the hyper-parameter optimization process
 
@@ -332,11 +332,11 @@ class GPSearchCV(object):
         self.n_init = init_candidates.shape[0]
 
         for i in range(self.n_init):
-            dict_candidate = self.vector_to_dict(init_candidates[i, :])
+            dict_candidate = self._vector_to_dict(init_candidates[i, :])
             cv_score = self.score(dict_candidate)
 
             if(self.verbose):
-                print ('Step ' + str(i) + ' - Hyperparameter '
+                print('Step ' + str(i) + ' - Hyperparameter '
                        + str(dict_candidate) + ' ' + str(cv_score))
 
             is_in, idx = is_in_ndarray(
@@ -383,10 +383,10 @@ class GPSearchCV(object):
                 print('WARNING : acquisition_function not implemented yet : '
                       + self.acquisition_function)
 
-            dict_candidate = self.vector_to_dict(best_candidate)
+            dict_candidate = self._vector_to_dict(best_candidate)
             cv_score = self.score(dict_candidate)
             if(self.verbose):
-                print ('Step ' + str(i+self.n_init) + ' - Hyperparameter '
+                print('Step ' + str(i+self.n_init) + ' - Hyperparameter '
                        + str(dict_candidate) + ' ' + str(cv_score))
 
             is_in, idx = is_in_ndarray(
@@ -403,7 +403,7 @@ class GPSearchCV(object):
 
         best_idx = np.argmax(cv_scores[:n_tested_parameters])
         vector_best_param = tested_parameters[best_idx]
-        best_parameter = self.vector_to_dict(vector_best_param)
+        best_parameter = self._vector_to_dict(vector_best_param)
 
         # store
         self.best_parameter_ = best_parameter
@@ -411,10 +411,10 @@ class GPSearchCV(object):
         self.cv_scores_ = cv_scores[:n_tested_parameters]
 
         if(self.verbose):
-            print ('\nTested ' + str(n_tested_parameters) + ' parameters')
-            print ('Max cv score ' + str(cv_scores[best_idx]))
-            print ('Best parameter ' + str(tested_parameters[best_idx]))
-            print (best_parameter)
+            print('\nTested ' + str(n_tested_parameters) + ' parameters')
+            print('Max cv score ' + str(cv_scores[best_idx]))
+            print('Best parameter ' + str(tested_parameters[best_idx]))
+            print(best_parameter)
 
         return tested_parameters[:n_tested_parameters, :], \
             cv_scores[:n_tested_parameters]
