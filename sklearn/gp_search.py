@@ -202,10 +202,11 @@ class GPSearchCV(BaseSearchCV):
                  fit_params=None,
                  cv=None,
                  acquisition_function='UCB',
+                 refit=True,
                  n_init=10,
                  n_iter=20,
                  n_candidates=500,
-                 gp_params=None
+                 gp_params={},
                  verbose=0):
 
         self.estimator = estimator
@@ -215,6 +216,7 @@ class GPSearchCV(BaseSearchCV):
         self.acquisition_function = acquisition_function
         self.n_iter = n_iter
         self.n_init = n_init
+        self.refit = refit
         self.n_candidates = n_candidates
         self.gp_params = gp_params
         self.param_names = list(parameters.keys())
@@ -403,7 +405,7 @@ class GPSearchCV(BaseSearchCV):
         # store
         self.best_parameter_ = best_parameter
         self.tested_parameters_ = tested_parameters[:n_tested_parameters, :]
-        self.cv_scores_ = cv_scores[:n_tested_parameters]
+        self.scores_ = cv_scores[:n_tested_parameters]
 
         if self.verbose > 0:
             print('\nTested ' + str(n_tested_parameters) + ' parameters')
@@ -411,5 +413,15 @@ class GPSearchCV(BaseSearchCV):
             print('Best parameter ' + str(tested_parameters[best_idx]))
             print(best_parameter)
 
-        return tested_parameters[:n_tested_parameters, :], \
-            cv_scores[:n_tested_parameters]
+        if self.refit:
+            # fit the best estimator using the entire dataset
+            # clone first to work around broken estimators
+            best_estimator = clone(self.estimator).set_params(
+                **best_parameter)
+            if y is not None:
+                best_estimator.fit(X, y, **self.fit_params)
+            else:
+                best_estimator.fit(X, **self.fit_params)
+            self.best_estimator_ = best_estimator
+
+        return self

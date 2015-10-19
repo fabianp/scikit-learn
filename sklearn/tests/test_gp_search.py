@@ -52,7 +52,7 @@ def test_gp_search():
     assert_equal(gp_search.best_estimator_.foo_param, 2)
 
     for i, foo_i in enumerate([1, 2, 3]):
-        assert_true(gp_search.grid_scores_[i][0]
+        assert_true(gp_search.scores_[i][0]
                     == {'foo_param': foo_i})
     # Smoke test the score etc:
     gp_search.score(X, y)
