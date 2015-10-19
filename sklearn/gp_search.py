@@ -25,7 +25,7 @@ def sample_candidates(n_candidates, param_bounds, param_isInt):
     candidates = []
 
     for k in range(n_parameters):
-        if(param_isInt[k]):
+        if param_isInt[k]:
             k_sample = np.asarray(
                 np.random.rand(n_candidates)
                 * np.float(param_bounds[k][1]-param_bounds[k][0])
@@ -75,7 +75,7 @@ def is_in_ndarray(item, a):
     idxk = range(a.shape[0])
     while(k < a.shape[1]):
         idxk = (a[idxk, k] == item[k])
-        if(np.sum(idxk > 0)):
+        if np.sum(idxk > 0):
             k += 1
             idx_val = idx_val[idxk]
             idxk = list(idx_val)
@@ -196,19 +196,20 @@ class GPSearchCV(object):
     """
 
     def __init__(self,
-                 parameters,
                  estimator,
+                 parameters,
                  scoring=None,
                  fit_params=None,
                  refit=True,
                  cv=None,
                  acquisition_function='UCB',
-                 n_iter=100,
                  n_init=10,
+                 n_iter=100,
                  n_candidates=500,
                  gp_nugget=1.e-10,
-                 verbose=True):
+                 verbose=0):
 
+        self.estimator = estimator
         self.parameters = parameters
         self.n_parameters = len(parameters)
         self.acquisition_function = acquisition_function
@@ -222,7 +223,6 @@ class GPSearchCV(object):
         self.gp_nugget = gp_nugget
         self.verbose = verbose
         self.scoring = scoring
-        self.estimator = estimator
         self.fit_params = fit_params if fit_params is not None else {}
         self.cv = cv
 
@@ -230,9 +230,9 @@ class GPSearchCV(object):
         self.tested_parameters_ = None
         self.cv_scores_ = None
 
-        if(callable(estimator)):
+        if callable(estimator):
             self._callable_estimator = True
-            if(verbose):
+            if self.verbose > 0:
                 print('Estimator is a callable and not an sklearn Estimator')
         else:
             self._callable_estimator = False
@@ -242,17 +242,17 @@ class GPSearchCV(object):
 
         # init param_bounds
         for i in range(self.n_parameters):
-            if(parameters[self.param_names[i]][0] == 'cat'):
+            if parameters[self.param_names[i]][0] == 'cat':
                 self.param_bounds[i, 0] = 0
                 self.param_bounds[i, 1] = \
                     len(parameters[self.param_names[i]][1])
             else:
                 self.param_bounds[i] = \
                     np.array(parameters[self.param_names[i]][1])
-                if(parameters[self.param_names[i]][0] == 'int'):
+                if parameters[self.param_names[i]][0] == 'int':
                     self.param_bounds[i, 1] += 1
 
-        if(self.verbose):
+        if self.verbose > 0:
             print(self.parameters)
             print(self.param_names)
             print(self.param_isInt)
@@ -262,11 +262,11 @@ class GPSearchCV(object):
     def _vector_to_dict(self, vector_parameter):
         dict_parameter = dict.fromkeys(self.param_names)
         for i in range(self.n_parameters):
-            if(self.parameters[self.param_names[i]][0] == 'cat'):
+            if self.parameters[self.param_names[i]][0] == 'cat':
                 dict_parameter[self.param_names[i]] = \
                     (self.parameters[self.param_names[i]][1])[
                         int(vector_parameter[i])]
-            elif(self.parameters[self.param_names[i]][0] == 'int'):
+            elif self.parameters[self.param_names[i]][0] == 'int':
                 dict_parameter[self.param_names[i]] = int(vector_parameter[i])
             else:
                 dict_parameter[self.param_names[i]] = vector_parameter[i]
@@ -335,7 +335,7 @@ class GPSearchCV(object):
             dict_candidate = self._vector_to_dict(init_candidates[i, :])
             cv_score = self._evaluate_params(X, y, dict_candidate)
 
-            if(self.verbose):
+            if self.verbose > 0:
                 print('Step ' + str(i) + ' - Hyperparameter '
                        + str(dict_candidate) + ' ' + str(cv_score))
 
@@ -348,7 +348,7 @@ class GPSearchCV(object):
                 cv_scores[n_tested_parameters] = cv_score
                 n_tested_parameters += 1
             else:
-                if(self.verbose):
+                if self.verbose > 0:
                     print('Hyperparameter already tesed')
                 cv_scores[idx] = (cv_scores[idx] + cv_score) / 2.
 
@@ -364,12 +364,12 @@ class GPSearchCV(object):
             candidates = sample_candidates(self.n_candidates,
                                            self.param_bounds,
                                            self.param_isInt)
-            if(self.acquisition_function == 'UCB'):
+            if self.acquisition_function == 'UCB':
                 predictions, MSE = gp.predict(candidates, eval_MSE=True)
                 upperBound = predictions + 1.96*np.sqrt(MSE)
                 best_candidate = candidates[np.argmax(upperBound)]
 
-            elif(self.acquisition_function == 'EI'):
+            elif self.acquisition_function == 'EI':
                 predictions, MSE = gp.predict(candidates, eval_MSE=True)
                 y_best = np.max(cv_scores)
                 ei = compute_ei(predictions, np.sqrt(MSE), y_best)
@@ -381,7 +381,7 @@ class GPSearchCV(object):
 
             dict_candidate = self._vector_to_dict(best_candidate)
             cv_score = self._evaluate_params(X, y, dict_candidate)
-            if(self.verbose):
+            if self.verbose > 0:
                 print('Step ' + str(i+self.n_init) + ' - Hyperparameter '
                        + str(dict_candidate) + ' ' + str(cv_score))
 
@@ -393,7 +393,7 @@ class GPSearchCV(object):
                 cv_scores[n_tested_parameters] = cv_score
                 n_tested_parameters += 1
             else:
-                if(self.verbose):
+                if self.verbose > 0:
                     print('Hyperparameter already tesed')
                 cv_scores[idx] = (cv_scores[idx] + cv_score) / 2.
 
@@ -406,7 +406,7 @@ class GPSearchCV(object):
         self.tested_parameters_ = tested_parameters[:n_tested_parameters, :]
         self.cv_scores_ = cv_scores[:n_tested_parameters]
 
-        if(self.verbose):
+        if self.verbose > 0:
             print('\nTested ' + str(n_tested_parameters) + ' parameters')
             print('Max cv score ' + str(cv_scores[best_idx]))
             print('Best parameter ' + str(tested_parameters[best_idx]))
