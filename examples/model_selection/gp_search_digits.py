@@ -20,7 +20,7 @@ from __future__ import print_function
 
 from sklearn import datasets
 from sklearn.cross_validation import train_test_split
-from sklearn.grid_search import GridSearchCV
+from sklearn.gp_search import GPSearchCV
 from sklearn.metrics import classification_report
 from sklearn.svm import SVC
 
@@ -40,9 +40,8 @@ X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.5, random_state=0)
 
 # Set the parameters by cross-validation
-tuned_parameters = [{'kernel': ['rbf'], 'gamma': [1e-3, 1e-4],
-                     'C': [1, 10, 100, 1000]},
-                    {'kernel': ['linear'], 'C': [1, 10, 100, 1000]}]
+tuned_parameters = {'gamma': ['float', [1e-3, 1e-4]],
+                    'C': ['float', [1, 1000]]},
 
 scores = ['precision', 'recall']
 
@@ -50,7 +49,7 @@ for score in scores:
     print("# Tuning hyper-parameters for %s" % score)
     print()
 
-    clf = GridSearchCV(SVC(C=1), tuned_parameters, cv=5,
+    clf = GPSearchCV(SVC(C=1), tuned_parameters, cv=5,
                        scoring='%s_weighted' % score)
     clf.fit(X_train, y_train)
 
