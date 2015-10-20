@@ -35,8 +35,11 @@ def test1():
                   "bootstrap": ['cat', [True, False]],
                   "criterion": ['cat', ["gini", "entropy"]]}
 
-    search = GPSearchCV(parameters, estimator=clf, X=X, y=y, n_iter=20)
-    search._fit()
+    search = GPSearchCV(clf, parameters, n_iter=20)
+    search.fit(X, y)
+    print(search)
+    print(search.best_parameter_)
+    print(search.best_estimator_)
 
 
 def test2():
@@ -48,7 +51,7 @@ def test2():
         return 0.5
 
     search = GPSearchCV(parameters, estimator=scoring_function, n_iter=20)
-    search._fit()
+    search.fit(X=data.data, y=data.target)
 
 
 def test3():
@@ -93,17 +96,17 @@ def test3():
         # 'clf__n_iter': (10, 50, 80),
     }
 
-    search = GPSearchCV(parameters, estimator=pipeline, X=data.data, y=data.target, n_iter=20)
-    search._fit()
+    search = GPSearchCV(pipeline, parameters, n_iter=20)
+    search.fit(X=data.data, y=data.target)
 
 
-def gp_vs_random_search(test_name, n_tests, search_lenght, save_data=False):
+def gp_vs_random_search(test_name, n_tests, search_length, save_data=False):
     """
     Compare GP-based search vs a simple random one
     Choose test_name in {'iris', 'text'}
     """
 
-    n_iter_search = search_lenght
+    n_iter_search = search_length
 
     if(test_name == 'iris'):
         iris = load_digits()
@@ -168,10 +171,10 @@ def gp_vs_random_search(test_name, n_tests, search_lenght, save_data=False):
     all_gp_ucb_results = []
     print('GP_ucb search')
     for i in range(n_tests):
-        ucb_search = GPSearchCV(parameters, estimator=pipeline, X=X, y=y,
+        ucb_search = GPSearchCV(pipeline, parameters,
                                 acquisition_function='UCB',
                                 n_iter=n_iter_search, n_init=20, verbose=False)
-        _, scores = ucb_search._fit()
+        _, scores = ucb_search.fit(X=data.data, y=data.target)
 
         max_scores = [scores[0]]
         print('Test', i, '-', len(scores), 'parameters tested')
@@ -188,10 +191,10 @@ def gp_vs_random_search(test_name, n_tests, search_lenght, save_data=False):
     # all_gp_ei_results = []
     # print('GP_ei search')
     # for i in range(n_tests):
-    #   ei_search = GPSearchCV(parameters,estimator=pipeline,X=X,y=y,
+    #   ei_search = GPSearchCV(parameters,estimator=pipeline,
     #                       acquisition_function='EI',
     #                       n_iter=n_iter_search, n_init=20, verbose=False)
-    #   _,scores = ei_search._fit()
+    #   _,scores = ei_search.fit(X=data.data, y=data.target)
 
     #   max_scores = [scores[0]]
     #   print('Test',i,'-',len(scores),'parameters tested')
@@ -208,9 +211,9 @@ def gp_vs_random_search(test_name, n_tests, search_lenght, save_data=False):
     print('Random search')
     all_random_results = []
     for i in range(n_tests):
-        random_search = GPSearchCV(parameters, estimator=pipeline, X=X, y=y,
+        random_search = GPSearchCV(parameters, estimator=pipeline,
                                    n_iter=n_iter_search, n_init=n_iter_search, verbose=False)
-        _, scores = random_search._fit()
+        _, scores = random_search.fit(X=data.data, y=data.target)
 
         max_scores = [scores[0]]
         print('Test', i, '-', len(scores), 'parameters tested')
@@ -235,12 +238,13 @@ def gp_vs_random_search(test_name, n_tests, search_lenght, save_data=False):
 
 if __name__ == "__main__":
 
-    print('Routine Test')
-    test2()
-    test1()
+    # print('Routine Test')
+    # test2()
+    # test1()
+    # test3()
 
-    # test_name = 'text'
-    # n_tests = 20
-    # search_lenght = 60
-    # print('\nTest GP vs Random on',test_name,'dataset - Average on',n_tests,'trials')
-    # gp_vs_random_search(test_name,n_tests,search_lenght,save_data=True)
+    test_name = 'text'
+    n_tests = 20
+    search_length = 60
+    print('\nTest GP vs Random on',test_name,'dataset - Average on',n_tests,'trials')
+    gp_vs_random_search(test_name,n_tests,search_length,save_data=True)

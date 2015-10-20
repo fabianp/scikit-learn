@@ -17,7 +17,7 @@ from .metrics.scorer import check_scoring
 from .base import is_classifier, clone
 from .grid_search import BaseSearchCV
 
-#   UTILS    #
+
 
 def sample_candidates(n_candidates, param_bounds, param_isInt):
 
@@ -85,7 +85,7 @@ def is_in_ndarray(item, a):
     return True, idx_val[0]
 
 
-#    GPSearchCV    #
+
 class GPSearchCV(BaseSearchCV):
     """
     Parameters
