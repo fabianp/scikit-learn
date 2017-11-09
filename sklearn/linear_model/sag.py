@@ -305,6 +305,8 @@ def sag_solver(X, y, sample_weight=None, loss='log', alpha=1., beta=0.,
         raise ZeroDivisionError("Current sag implementation does not handle "
                                 "the case step_size * alpha_scaled == 1")
 
+    trace_x = np.zeros((max_iter, n_features))
+    trace_time = np.zeros(max_iter)
     num_seen, n_iter_ = sag(dataset, coef_init,
                             intercept_init, n_samples,
                             n_features, n_classes, tol,
@@ -320,7 +322,7 @@ def sag_solver(X, y, sample_weight=None, loss='log', alpha=1., beta=0.,
                             intercept_sum_gradient,
                             intercept_decay,
                             is_saga,
-                            verbose)
+                            verbose, trace_x, trace_time)
     if n_iter_ == max_iter:
         warnings.warn("The max_iter was reached which means "
                       "the coef_ did not converge", ConvergenceWarning)
@@ -338,4 +340,4 @@ def sag_solver(X, y, sample_weight=None, loss='log', alpha=1., beta=0.,
     else:
         coef_ = coef_init[:, 0]
 
-    return coef_, n_iter_, warm_start_mem
+    return coef_, n_iter_, warm_start_mem, trace_x, trace_time

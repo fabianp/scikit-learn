@@ -11,6 +11,7 @@ cimport numpy as np
 import numpy as np
 from libc.math cimport fabs, exp, log
 from libc.time cimport time, time_t
+from posix.time cimport clock_gettime, timespec, CLOCK_REALTIME
 
 from .sgd_fast cimport LossFunction
 from .sgd_fast cimport Log, SquaredLoss
@@ -239,7 +240,9 @@ def sag(SequentialDataset dataset,
         np.ndarray[double, ndim=1, mode='c'] intercept_sum_gradient_init,
         double intercept_decay,
         bint saga,
-        bint verbose):
+        bint verbose,
+        np.ndarray[double, ndim=2, mode='c'] trace_x,
+        np.ndarray[double, ndim=1, mode='c'] trace_time):
     """Stochastic Average Gradient (SAG) and SAGA solvers.
 
     Used in Ridge and LogisticRegression.
@@ -286,6 +289,8 @@ def sag(SequentialDataset dataset,
     cdef time_t start_time
     # the end time of the fit
     cdef time_t end_time
+
+    cdef timespec start_trace, end_trace
 
     # precomputation since the step size does not change in this implementation
     cdef double wscale_update = 1.0 - step_size * alpha
@@ -376,7 +381,15 @@ def sag(SequentialDataset dataset,
 
     with nogil:
         start_time = time(NULL)
+        clock_gettime(CLOCK_REALTIME, &start_trace)
         for n_iter in range(max_iter):
+            # FP: begin trace execution
+            clock_gettime(CLOCK_REALTIME, &end_trace)
+            trace_time[n_iter] = (end_trace.tv_sec - start_trace.tv_sec)\
+              + (end_trace.tv_nsec - start_trace.tv_nsec) / 1000000000.0
+            for idx in range(n_features):
+              trace_x[n_iter, idx] = weights[idx]
+            # FP: end trace execution
             for sample_itr in range(n_samples):
                 # extract a random sample
                 sample_ind = dataset.random(&x_data_ptr, &x_ind_ptr, &xnnz,
@@ -509,6 +522,7 @@ def sag(SequentialDataset dataset,
             elif verbose:
                 printf('Epoch %d, change: %.8f\n', n_iter + 1,
                                                   max_change / max_weight)
+
     n_iter += 1
 
     if verbose and n_iter >= max_iter:
@@ -568,7 +582,7 @@ cdef void lagged_update(double* weights, double wscale, int xnnz,
                           bint reset,
                           int n_iter) nogil:
     """Hard perform the JIT updates for non-zero features of present sample.
-     
+
     The updates that awaits are kept in memory using cumulative_sums,
     cumulative_sums_prox, wscale and feature_hist. See original SAGA paper
     (Defazio et al. 2014) for details. If reset=True, we also reset wscale to
